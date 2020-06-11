@@ -25,6 +25,7 @@ main(void)
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOG);
     GPIOPinTypeGPIOOutput(GPIO_PORTG_BASE, GPIO_PIN_2);
 
+    // Ustawienie pinu PM2 jako wejscie
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOM);
     GPIOPinTypeGPIOInput(GPIO_PORTM_BASE, GPIO_PIN_2);
 
