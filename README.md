@@ -1,7 +1,7 @@
 # Wstęp do Systemów Wbudowanych – Laboratorium/Projekt
 
 - [x] Segment A – uruchomienie środowiska, zapoznanie się z funkcjonalnością 
-- [ ] Segment B – porty wejścia/wyjścia
+- [x] Segment B – porty wejścia/wyjścia
 - [ ] Segment C – zegar systemowy, opóźnienia, liczniki i PWM
 - [ ] Segment D – PWM
 - [ ] Segment E – wyświetlacz segmentowy
