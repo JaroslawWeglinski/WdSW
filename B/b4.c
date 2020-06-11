@@ -19,7 +19,7 @@ __error__(char *pcFilename, uint32_t ui32Line)
 int
 main(void)
 {
-    SysCtlClockSet(SYSCTL_SYSDIV_4 | SYSCTL_USE_PLL | SYSCTL_XTAL_16MHZ | SYSCTL_OSC_MAIN);
+    SysCtlClockSet(SYSCTL_SYSDIV_4 | SYSCTL_XTAL_16MHZ | SYSCTL_OSC_MAIN);
 
     // Ustawienie pinu PG2 jako wyjscie
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOG);
