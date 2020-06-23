@@ -2,20 +2,13 @@
 #include <stdbool.h>
 #include "inc/hw_ints.h"
 #include "inc/hw_memmap.h"
-//#include "inc/hw_types.h"
-//#include "driverlib/debug.h"
-//#include "driverlib/fpu.h"
 #include "driverlib/interrupt.h"
 #include "driverlib/sysctl.h"
 #include "driverlib/gpio.h"
 #include "driverlib/timer.h"
 #include "driverlib/rom.h"
-//#include "grlib/grlib.h"
-//#include "drivers/cfal96x64x16.h"
 #include "driverlib/pwm.h"
 #include "driverlib/pin_map.h"
-
-
 
 #define PWM_FREQUENCY 1000
 unsigned long zmo=0;
@@ -23,54 +16,11 @@ unsigned int ulLoad;
 unsigned long ulClock;
 unsigned long ulPWMClock;
 
-//*****************************************************************************
-//
-// Flags that contain the current value of the interrupt indicator as displayed
-// on the CSTN display.
-//
-//*****************************************************************************
-//uint32_t g_ui32Flags;
-
-//*****************************************************************************
-//
-// Graphics context used to show text on the CSTN display.
-//
-//*****************************************************************************
-//tContext g_sContext;
-
-//*****************************************************************************
-//
-// The error routine that is called if the driver library encounters an error.
-//
-//*****************************************************************************
-#ifdef DEBUG
-void
-__error__(char *pcFilename, uint32_t ui32Line)
-{
-}
-#endif
-
-//*****************************************************************************
-//
-// The interrupt handler for the first timer interrupt.
-//
-//*****************************************************************************
 void
 Timer0IntHandler(void)
 {
-    //
     // Clear the timer interrupt.
-    //
     ROM_TimerIntClear(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
-
-
-
-    if (zmo > 32) zmo=0;
-    ulLoad = zmo*((ulPWMClock / PWM_FREQUENCY) - 1)/100;
-    zmo += 4;
-
-    //PWMPulseWidthSet(PWM1_BASE, PWM_OUT_4, ulLoad);
-
 
     int32_t val = GPIOPinRead(GPIO_PORTB_BASE, GPIO_PIN_5); // Czytanie z PB5 (dioda)
 
@@ -80,41 +30,18 @@ Timer0IntHandler(void)
     GPIOPinWrite(GPIO_PORTB_BASE, GPIO_PIN_5, val << 5);
 }
 
-//*****************************************************************************
-//
-// The interrupt handler for the second timer interrupt.
-//
-//*****************************************************************************
 void
 Timer1IntHandler(void)
 {
-//    //
-//    // Clear the timer interrupt.
-//    //
-//    ROM_TimerIntClear(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
-//
-//    //
-//    // Toggle the flag for the second timer.
-//    //
-//    HWREGBITW(&g_ui32Flags, 1) ^= 1;
-//
-//    //
-//    // Update the interrupt status on the display.
-//    //
-//    ROM_IntMasterDisable();
-//    GrStringDraw(&g_sContext, (HWREGBITW(&g_ui32Flags, 1) ? "1" : "0"), -1, 68,
-//                 36, 1);
-//    ROM_IntMasterEnable();
+    // Clear the timer interrupt.
+    ROM_TimerIntClear(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
+
+    if (zmo > 32) zmo=0;
+    ulLoad = zmo*((ulPWMClock / PWM_FREQUENCY) - 1)/100;
+    zmo += 4;
+
+    PWMPulseWidthSet(PWM1_BASE, PWM_OUT_4, ulLoad);
 }
-
-//*****************************************************************************
-//
-// This example application demonstrates the use of the timers to generate
-// periodic interrupts.
-//
-//*****************************************************************************
-
-
 
 int
 main(void)
@@ -130,74 +57,67 @@ main(void)
 
     // Ustawienie pinu PN3 (dioda D2) jako wyjscie
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPION);
-    GPIOPinTypeGPIOOutput(GPIO_PORTN_BASE, GPIO_PIN_3);
+    GPIOPinTypeGPIOOutput(GPIO_PORTN_BASE, GPIO_PIN_3 | GPIO_PIN_4);
 
     //
-    // Wlaczanie i konfiguracja licznika
+    // Wlaczanie i konfiguracja liczników
     //
     SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
     TimerConfigure(TIMER0_BASE, TIMER_CFG_PERIODIC); // timer okresowy z 32bit. rej. liczący w dół
     ulPeriod = SysCtlClockGet() / 2; // ilosc “tickow” na stan diody led
-    TimerLoadSet(TIMER0_BASE, TIMER_A, ulPeriod -1); // załaduj wartość do timera
+    TimerLoadSet(TIMER0_BASE, TIMER_A, ulPeriod - 1); // załaduj wartość do timera
+
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER1);
+    TimerConfigure(TIMER1_BASE, TIMER_CFG_PERIODIC); // timer okresowy z 32bit. rej. liczący w dół
+    ulPeriod = SysCtlClockGet(); // ilosc “tickow” na stan diody led
+    TimerLoadSet(TIMER1_BASE, TIMER_A, ulPeriod - 1); // załaduj wartość do timera
+
+
     IntMasterEnable(); // w module timera i NVIC
+
     IntEnable(INT_TIMER0A); // zezwól na pracę przerwań od timera
     TimerIntEnable(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
     TimerEnable(TIMER0_BASE, TIMER_A); // odpal timer
 
-    //SysCtlClockSet(SYSCTL_SYSDIV_16|SYSCTL_USE_OSC|SYSCTL_XTAL_16MHZ|SYSCTL_OSC_MAIN);
+    IntEnable(INT_TIMER1A); // zezwól na pracę przerwań od timera
+    TimerIntEnable(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
+    TimerEnable(TIMER1_BASE, TIMER_A); // odpal timer
 
     SysCtlPWMClockSet(SYSCTL_PWMDIV_2); // clock divider for the PWM , this gives 500 kHz
     SysCtlPeripheralEnable(SYSCTL_PERIPH_PWM0); // enable the PWM
     SysCtlPeripheralEnable(SYSCTL_PERIPH_PWM1); // enable the PWM
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPION); // enable the N Port
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPION);  // enable the N Port
 
-    GPIOPinTypePWM(GPIO_PORTN_BASE, GPIO_PIN_3);//tell that PWM is attached to GPION_PIN_3
-    GPIOPinTypePWM(GPIO_PORTN_BASE, GPIO_PIN_4);//tell that PWM is attached to GPION_PIN_3
+    // Połacz  GPION_PIN_3 i GPION_PIN_4 do PWM
+    GPIOPinTypePWM(GPIO_PORTN_BASE, GPIO_PIN_3);
+    GPIOPinTypePWM(GPIO_PORTN_BASE, GPIO_PIN_4);
     GPIOPinConfigure(GPIO_PN3_M0PWM7);
     GPIOPinConfigure(GPIO_PN4_M1PWM4);
 
 
     ulPWMClock = SysCtlClockGet(); //divide PWMs clock by 16
 
-    //this tells the PWM the number of clock ticks it should
-    //wait to change the state of the output – this defines the frequency
     ulLoad = (ulPWMClock / PWM_FREQUENCY) - 1;
 
-    PWMGenConfigure(PWM0_BASE, PWM_GEN_3, PWM_GEN_MODE_DOWN); //tell the PWM that it will
-    //count down (not up as in the example in which we showed how a PWM works)
-    //It will count down to zero from the value (ulLoad) that we load into the period register, and then start
-    //again from the loaded value
-
-    PWMGenPeriodSet(PWM0_BASE, PWM_GEN_3, ulLoad);  //load the value
-
-    PWMOutputState(PWM0_BASE, PWM_OUT_7_BIT, true);  //allow the PWM to alter the output
-    PWMGenEnable(PWM0_BASE, PWM_GEN_3);  //turn on PWMs generator
+    PWMGenConfigure(PWM0_BASE, PWM_GEN_3, PWM_GEN_MODE_DOWN);
+    PWMGenPeriodSet(PWM0_BASE, PWM_GEN_3, ulLoad);
+    PWMOutputState(PWM0_BASE, PWM_OUT_7_BIT, true);
+    PWMGenEnable(PWM0_BASE, PWM_GEN_3);
 
     // Ustawianie szerokosci impulsu na 24%
     ulLoad = 24*((ulPWMClock / PWM_FREQUENCY) - 1)/100;
     PWMPulseWidthSet(PWM0_BASE, PWM_OUT_7, ulLoad);
 
     //
-    // D3
+    // Dioda D3
     //
 
-    //this tells the PWM the number of clock ticks it should
-    //wait to change the state of the output – this defines the frequency
     ulLoad = (ulPWMClock / PWM_FREQUENCY) - 1;
 
-    PWMGenConfigure(PWM1_BASE, PWM_GEN_2, PWM_GEN_MODE_DOWN); //tell the PWM that it will
-    //count down (not up as in the example in which we showed how a PWM works)
-    //It will count down to zero from the value (ulLoad) that we load into the period register, and then start
-    //again from the loaded value
-
-    PWMGenPeriodSet(PWM1_BASE, PWM_GEN_2, ulLoad);  //load the value
-
-    PWMOutputState(PWM1_BASE, PWM_OUT_4_BIT, true);  //allow the PWM to alter the output
-    PWMGenEnable(PWM1_BASE, PWM_GEN_2);  //turn on PWMs generator
-
-    // Ustawianie szerokosci impulsu na 24%
-    //ulLoad = zom*((ulPWMClock / PWM_FREQUENCY) - 1)/100;
-    //PWMPulseWidthSet(PWM1_BASE, PWM_OUT_4, ulLoad);
+    PWMGenConfigure(PWM1_BASE, PWM_GEN_2, PWM_GEN_MODE_DOWN);
+    PWMGenPeriodSet(PWM1_BASE, PWM_GEN_2, ulLoad);
+    PWMOutputState(PWM1_BASE, PWM_OUT_4_BIT, true);
+    PWMGenEnable(PWM1_BASE, PWM_GEN_2);
 
     //
     // Loop forever while the timers run.
