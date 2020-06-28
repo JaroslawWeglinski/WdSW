@@ -2,8 +2,8 @@
 
 - [x] Segment A – uruchomienie środowiska, zapoznanie się z funkcjonalnością 
 - [x] Segment B – porty wejścia/wyjścia
-- [ ] Segment C – zegar systemowy, opóźnienia, liczniki i PWM
-- [ ] Segment D – PWM
+- [x] Segment C – zegar systemowy, opóźnienia, liczniki i PWM
+- [x] Segment D – PWM
 - [ ] Segment E – wyświetlacz segmentowy
 - [ ] Segment F – wyświetlacz wbudowany
 - [ ] Segment G – Obsługa przerwań
