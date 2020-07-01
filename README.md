@@ -4,6 +4,6 @@
 - [x] Segment B – porty wejścia/wyjścia
 - [x] Segment C – zegar systemowy, opóźnienia, liczniki i PWM
 - [x] Segment D – PWM
-- [ ] Segment E – wyświetlacz segmentowy
-- [ ] Segment F – wyświetlacz wbudowany
+- [x] Segment E – wyświetlacz segmentowy
+- [x] Segment F – wyświetlacz wbudowany
 - [ ] Segment G – Obsługa przerwań
