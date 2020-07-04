@@ -4,18 +4,6 @@
 #include "driverlib/gpio.h"
 #include "inc/hw_memmap.h"
 
-//*****************************************************************************
-//
-// The error routine that is called if the driver library encounters an error.
-//
-//*****************************************************************************
-#ifdef DEBUG
-void
-__error__(char *pcFilename, uint32_t ui32Line)
-{
-}
-#endif
-
 int
 main(void)
 {
