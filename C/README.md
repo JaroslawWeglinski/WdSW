@@ -9,6 +9,8 @@
 16 MHz / 16 = 1 MHz = 0.001ms (okres)
 500 ms / 0.001ms = 500000
 
+*Filmik:*
+
 ![filmik c1](./c1.gif)
 
 Okres mrugania diody nie różnił się zauważalnie od 500ms.
@@ -16,6 +18,8 @@ Okres mrugania diody nie różnił się zauważalnie od 500ms.
 ## C.2. Opóźnienie programowe – wersja ROM
 
 [Kod do zadania C.2.](./c2.c)
+
+*Filmik:*
 
 ![filmik c2](./c2.gif)
 
@@ -46,5 +50,7 @@ Ponieważ timer resetuje się przy przejściu przez zero, a nie na samej wartoś
 ### Jaki jest maksymalny czas, który może zmierzyć licznikiem pełnej długości?
 
 4,294,967,295 * 0.001ms
+
+*Filmik:*
 
 ![filmik c3](./c3.gif)
