@@ -80,7 +80,7 @@
 #include "driverlib/gpio.h"
 #include "inc/hw_memmap.h"
 
-#define countt 4
+char str[64];
 
 //*****************************************************************************
 //
@@ -132,7 +132,7 @@ Timer0IntHandler(void)
     //
     // Clear the timer interrupt.
     //
-    ROM_TimerIntClear(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
+    TimerIntClear(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
 
     //
     // Toggle the flag for the first timer.
@@ -142,19 +142,16 @@ Timer0IntHandler(void)
     //
     // Sprawdz stan licznika wcisniec
     //
-    int pressCount = TimerLoadGet(TIMER5_BASE, TIMER_A);
-    //TimerLoadSet(TIMER5_BASE, TIMER_A, 0);
-    char str[64];
-    sprintf(str, "%d", pressCount);
+
 
     //
     // Update the interrupt status on the display.
     //
-    ROM_IntMasterDisable();
+    IntMasterDisable();
     GrStringDraw(&g_sContext, (HWREGBITW(&g_ui32Flags, 0) ? "1" : "0"), -1, 68, 26, 1);
-    GrStringDraw(&g_sContext, str, -1, 68, 46, 1);
+    GrStringDraw(&g_sContext, str, -1, 8, 46, 1);
     //GrStringDraw(&g_sContext, (HWREGBITW(&g_ui32Flags, 1) ? "1" : "0"), -1, 68, 36, 1);
-    ROM_IntMasterEnable();
+    IntMasterEnable();
 }
 
 //*****************************************************************************
@@ -168,7 +165,7 @@ Timer1IntHandler(void)
     //
     // Clear the timer interrupt.
     //
-    ROM_TimerIntClear(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
+    TimerIntClear(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
 
     //
     // Toggle the flag for the second timer.
@@ -178,9 +175,9 @@ Timer1IntHandler(void)
     //
     // Update the interrupt status on the display.
     //
-    ROM_IntMasterDisable();
+    IntMasterDisable();
     GrStringDraw(&g_sContext, (HWREGBITW(&g_ui32Flags, 1) ? "1" : "0"), -1, 68, 36, 1);
-    ROM_IntMasterEnable();
+    IntMasterEnable();
 }
 
 //*****************************************************************************
@@ -199,12 +196,12 @@ main(void)
     // instructions to be used within interrupt handlers, but at the expense of
     // extra stack usage.
     //
-    ROM_FPULazyStackingEnable();
+    FPULazyStackingEnable();
 
     //
     // Set the clocking to run directly from the crystal.
     //
-    ROM_SysCtlClockSet(SYSCTL_SYSDIV_1 | SYSCTL_USE_OSC | SYSCTL_OSC_MAIN |
+    SysCtlClockSet(SYSCTL_SYSDIV_1 | SYSCTL_USE_OSC | SYSCTL_OSC_MAIN |
                        SYSCTL_XTAL_16MHZ);
 
     //
@@ -249,21 +246,21 @@ main(void)
     //
     // Enable the peripherals used by this example.
     //
-    ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
-    ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER1);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER1);
 
     //
     // Enable processor interrupts.
     //
-    ROM_IntMasterEnable();
+    IntMasterEnable();
 
     //
     // Configure the two 32-bit periodic timers.
     //
-    ROM_TimerConfigure(TIMER0_BASE, TIMER_CFG_PERIODIC);
-    //ROM_TimerConfigure(TIMER1_BASE, TIMER_CFG_PERIODIC);
-    ROM_TimerLoadSet(TIMER0_BASE, TIMER_A, ROM_SysCtlClockGet());
-    //ROM_TimerLoadSet(TIMER1_BASE, TIMER_A, ROM_SysCtlClockGet() / 2);
+    TimerConfigure(TIMER0_BASE, TIMER_CFG_PERIODIC);
+    //TimerConfigure(TIMER1_BASE, TIMER_CFG_PERIODIC);
+    TimerLoadSet(TIMER0_BASE, TIMER_A, SysCtlClockGet() * 4);
+    //TimerLoadSet(TIMER1_BASE, TIMER_A, SysCtlClockGet() / 2);
 
     //
     // Setup the interrupts for the timer timeouts.
@@ -274,36 +271,44 @@ main(void)
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOM);
     SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER5);
     GPIOPinTypeGPIOInput(GPIO_PORTM_BASE, GPIO_PIN_2);
+    //GPIODirModeSet(GPIO_PORTM_BASE, GPIO_PIN_2, GPIO_DIR_MODE_HW);
     GPIOPadConfigSet(GPIO_PORTM_BASE, GPIO_PIN_2, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU); // pull-up
 
 
-    GPIOPinConfigure(GPIO_PM2_T5CCP0);
     GPIOPinTypeTimer(GPIO_PORTM_BASE, GPIO_PIN_2);
+    GPIOPinConfigure(GPIO_PM2_T5CCP0);
 
-    TimerConfigure(TIMER5_BASE, TIMER_CFG_A_CAP_COUNT_UP);
+    TimerDisable(TIMER5_BASE, TIMER_A);
+
+    TimerConfigure(TIMER5_BASE, TIMER_CFG_SPLIT_PAIR | TIMER_CFG_A_CAP_COUNT_UP);
     TimerControlEvent(TIMER5_BASE, TIMER_A, TIMER_EVENT_POS_EDGE);
 
-    TimerLoadSet(TIMER5_BASE, TIMER_A, 0);
+    TimerLoadSet(TIMER5_BASE, TIMER_A, 3);
 
 
 
 
-    ROM_IntEnable(INT_TIMER0A);
-    //ROM_IntEnable(INT_TIMER1A);
-    ROM_TimerIntEnable(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
-    //ROM_TimerIntEnable(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
+    IntEnable(INT_TIMER0A);
+    //IntEnable(INT_TIMER1A);
+    TimerIntEnable(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
+    //TimerIntEnable(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
 
     //
     // Enable the timers.
     //
-    ROM_TimerEnable(TIMER0_BASE, TIMER_A);
-    //ROM_TimerEnable(TIMER1_BASE, TIMER_A);
-    ROM_TimerEnable(TIMER5_BASE, TIMER_A);
+    TimerEnable(TIMER0_BASE, TIMER_A);
+    //TimerEnable(TIMER1_BASE, TIMER_A);
+    TimerEnable(TIMER5_BASE, TIMER_A);
 
     //
     // Loop forever while the timers run.
     //
     while(1)
     {
+        int pressCount = TimerValueGet(TIMER5_BASE, TIMER_A);
+        //TimerLoadSet(TIMER5_BASE, TIMER_A, 0);
+
+        sprintf(str, "%d", pressCount);
+        SysCtlDelay(SysCtlClockGet() / 4);
     }
 }
