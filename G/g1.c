@@ -1,26 +1,98 @@
-#include "driverlib/adc.h"
-#include "driverlib/debug.h"
-#include "driverlib/fpu.h"
-#include "driverlib/gpio.h"
-#include "driverlib/interrupt.h"
-#include "driverlib/pin_map.h"
-#include "driverlib/pwm.h"
-#include "driverlib/rom.h"
-#include "driverlib/sysctl.h"
-#include "driverlib/timer.h"
-#include "drivers/cfal96x64x16.h"
-#include "grlib/grlib.h"
-#include "inc/hw_ints.h"
-#include "inc/hw_memmap.h"
-#include "inc/hw_types.h"
-#include "utils/uartstdio.h"
-#include "utils/ustdlib.h"
-#include <stdbool.h>
+//*****************************************************************************
+//
+// timers.c - Timers example.
+//
+// Copyright (c) 2011-2013 Texas Instruments Incorporated.  All rights reserved.
+// Software License Agreement
+//
+// Texas Instruments (TI) is supplying this software for use solely and
+// exclusively on TI's microcontroller products. The software is owned by
+// TI and/or its suppliers, and is protected under applicable copyright
+// laws. You may not combine this software with "viral" open-source
+// software in order to form a larger program.
+//
+// THIS SOFTWARE IS PROVIDED "AS IS" AND WITH ALL FAULTS.
+// NO WARRANTIES, WHETHER EXPRESS, IMPLIED OR STATUTORY, INCLUDING, BUT
+// NOT LIMITED TO, IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+// A PARTICULAR PURPOSE APPLY TO THIS SOFTWARE. TI SHALL NOT, UNDER ANY
+// CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR CONSEQUENTIAL
+// DAMAGES, FOR ANY REASON WHATSOEVER.
+//
+// This is part of revision 2.0.1.11577 of the DK-TM4C123G Firmware Package.
+//
+//*****************************************************************************
+
 #include <stdint.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 
+#include "inc/hw_ints.h"
+#include "inc/hw_memmap.h"
+#include "inc/hw_types.h"
+#include "driverlib/debug.h"
+#include "driverlib/fpu.h"
+#include "driverlib/interrupt.h"
+#include "driverlib/sysctl.h"
+#include "driverlib/timer.h"
+#include "driverlib/rom.h"
+#include "grlib/grlib.h"
+#include "drivers/cfal96x64x16.h"
+#include "inc/hw_ints.h"
+#include "inc/hw_memmap.h"
+#include "driverlib/interrupt.h"
+#include "driverlib/sysctl.h"
+#include "driverlib/gpio.h"
+#include "driverlib/timer.h"
+#include "driverlib/rom.h"
+#include "driverlib/pwm.h"
+#include "driverlib/pin_map.h"
+
+
+#include"inc/hw_types.h"
+#include"inc/hw_memmap.h"
+#include"driverlib/fpu.h"
+#include"driverlib/sysctl.h"
+#include"driverlib/rom.h"
+#include"driverlib/pin_map.h"
+#include"grlib/grlib.h"
+#include"drivers/cfal96x64x16.h"
+#include"utils/uartstdio.h"
+#include"driverlib/gpio.h"
+#include"utils/ustdlib.h"
+#include"driverlib/adc.h"
+#include"inc/hw_ints.h"
+#include"driverlib/interrupt.h"
+#include"driverlib/timer.h"
+#include"driverlib/pwm.h"
+#include"driverlib/debug.h"
+#include "inc/hw_ints.h"
+#include "inc/hw_memmap.h"
+#include "driverlib/interrupt.h"
+#include "driverlib/sysctl.h"
+#include "driverlib/gpio.h"
+#include "driverlib/timer.h"
+#include "driverlib/rom.h"
+#include "driverlib/pwm.h"
+#include "driverlib/pin_map.h"
+
+#include "driverlib/sysctl.h"
+#include "driverlib/gpio.h"
+#include "inc/hw_memmap.h"
+
 #define countt 4
+
+//*****************************************************************************
+//
+//! \addtogroup example_list
+//! <h1>Timer (timers)</h1>
+//!
+//! This example application demonstrates the use of the timers to generate
+//! periodic interrupts.  One timer is set up to interrupt once per second and
+//! the other to interrupt twice per second; each interrupt handler will toggle
+//! its own indicator on the display.
+//
+//*****************************************************************************
 
 //*****************************************************************************
 //
@@ -70,17 +142,18 @@ Timer0IntHandler(void)
     //
     // Sprawdz stan licznika wcisniec
     //
-    //int pressCount = TimerLoadGet(TIMER4_BASE, TIMER_A);
+    int pressCount = TimerLoadGet(TIMER5_BASE, TIMER_A);
     //TimerLoadSet(TIMER5_BASE, TIMER_A, 0);
     char str[64];
-    //sprintf(str, "%d", pressCount);
+    sprintf(str, "%d", pressCount);
 
     //
     // Update the interrupt status on the display.
     //
     ROM_IntMasterDisable();
     GrStringDraw(&g_sContext, (HWREGBITW(&g_ui32Flags, 0) ? "1" : "0"), -1, 68, 26, 1);
-    //GrStringDraw(&g_sContext, str, -1, 68, 26, 1);
+    GrStringDraw(&g_sContext, str, -1, 68, 46, 1);
+    //GrStringDraw(&g_sContext, (HWREGBITW(&g_ui32Flags, 1) ? "1" : "0"), -1, 68, 36, 1);
     ROM_IntMasterEnable();
 }
 
@@ -106,8 +179,7 @@ Timer1IntHandler(void)
     // Update the interrupt status on the display.
     //
     ROM_IntMasterDisable();
-    GrStringDraw(&g_sContext, (HWREGBITW(&g_ui32Flags, 1) ? "1" : "0"), -1, 68,
-                 36, 1);
+    GrStringDraw(&g_sContext, (HWREGBITW(&g_ui32Flags, 1) ? "1" : "0"), -1, 68, 36, 1);
     ROM_IntMasterEnable();
 }
 
@@ -189,9 +261,9 @@ main(void)
     // Configure the two 32-bit periodic timers.
     //
     ROM_TimerConfigure(TIMER0_BASE, TIMER_CFG_PERIODIC);
-    ROM_TimerConfigure(TIMER1_BASE, TIMER_CFG_PERIODIC);
+    //ROM_TimerConfigure(TIMER1_BASE, TIMER_CFG_PERIODIC);
     ROM_TimerLoadSet(TIMER0_BASE, TIMER_A, ROM_SysCtlClockGet());
-    ROM_TimerLoadSet(TIMER1_BASE, TIMER_A, ROM_SysCtlClockGet() / 2);
+    //ROM_TimerLoadSet(TIMER1_BASE, TIMER_A, ROM_SysCtlClockGet() / 2);
 
     //
     // Setup the interrupts for the timer timeouts.
@@ -200,28 +272,32 @@ main(void)
     //GPIO_PF2_T1CCP0
     // SW5 - PM4 - timer
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOM);
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER2);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER5);
+    GPIOPinTypeGPIOInput(GPIO_PORTM_BASE, GPIO_PIN_2);
+    GPIOPadConfigSet(GPIO_PORTM_BASE, GPIO_PIN_2, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU); // pull-up
+
+
     GPIOPinConfigure(GPIO_PM2_T5CCP0);
     GPIOPinTypeTimer(GPIO_PORTM_BASE, GPIO_PIN_2);
 
     TimerConfigure(TIMER5_BASE, TIMER_CFG_A_CAP_COUNT_UP);
     TimerControlEvent(TIMER5_BASE, TIMER_A, TIMER_EVENT_POS_EDGE);
-//
-//    TimerLoadSet(TIMER5_BASE, TIMER_A, 0);
+
+    TimerLoadSet(TIMER5_BASE, TIMER_A, 0);
 
 
 
 
     ROM_IntEnable(INT_TIMER0A);
-    ROM_IntEnable(INT_TIMER1A);
+    //ROM_IntEnable(INT_TIMER1A);
     ROM_TimerIntEnable(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
-    ROM_TimerIntEnable(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
+    //ROM_TimerIntEnable(TIMER1_BASE, TIMER_TIMA_TIMEOUT);
 
     //
     // Enable the timers.
     //
     ROM_TimerEnable(TIMER0_BASE, TIMER_A);
-    ROM_TimerEnable(TIMER1_BASE, TIMER_A);
+    //ROM_TimerEnable(TIMER1_BASE, TIMER_A);
     ROM_TimerEnable(TIMER5_BASE, TIMER_A);
 
     //
