@@ -1,6 +1,6 @@
 # A. Aplikacja demonstracyjna
 
-## A.1.
+## A.1. Demonstracja wybranych funkcji
 
 **Jakie wielkości są wyświetlane na widocznych wykresach i od czego zależą
 wyświetlane wartości (w szczególności, jak pokazać, że zachodzą zmiany?)**

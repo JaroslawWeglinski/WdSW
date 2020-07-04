@@ -1,10 +1,10 @@
 # B. Włączanie diody
 
-## B.2.
+## B.2. Uruchomienie/gaszenie diody
 
 [Kod do zadania B.2.](./b2.c)
 
-## B.3.
+## B.3. Sterowanie bezpośrednie
 
 [Kod do zadania B.3.](./b3.c)
 
@@ -15,7 +15,7 @@ powoduje zgaszenie diody.
 
 ![filmik](./b3.gif)
 
-## B.4.
+## B.4. Sterowanie niebezpośrednie
 
 [Kod do zadania B.4.](./b4.c)
 
