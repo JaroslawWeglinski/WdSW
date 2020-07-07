@@ -7,6 +7,7 @@
 ### Ile cykli potrzeba do wykonania 500 ms opóźnienia?
 
 16 MHz / 16 = 1 MHz = 0.001ms (okres)
+
 500 ms / 0.001ms = 500000
 
 *Filmik:*
