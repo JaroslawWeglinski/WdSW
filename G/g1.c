@@ -26,41 +26,28 @@
 #include "utils/ustdlib.h"
 #include "driverlib/adc.h"
 
-char str[64];
-int pressCount;
-
 uint32_t g_ui32Flags;
+
+const unsigned int timerStartValue = 2048;
+volatile unsigned int pressCount;
+volatile unsigned int displayFlag = 0;
+char str[64];
 
 // Graphics context used to show text on the CSTN display.
 tContext g_sContext;
 
-// The interrupt handler for the first timer interrupt.
 void
 Timer0IntHandler(void)
 {
     // Clear the timer interrupt.
     TimerIntClear(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
 
-    // Toggle the flag for the first timer.
-    HWREGBITW(&g_ui32Flags, 0) ^= 1;
-
     //
-    // Get and display timer value.
+    // Get and reload timer value, then set display flag.
     //
-
-    pressCount = TimerValueGet(TIMER5_BASE, TIMER_A);
-    //TimerLoadSet(TIMER5_BASE, TIMER_A, 0);
-
-    sprintf(str, "%d", pressCount);
-
-    //
-    // Update the interrupt status on the display.
-    //
-    IntMasterDisable();
-    GrStringDraw(&g_sContext, (HWREGBITW(&g_ui32Flags, 0) ? "1" : "0"), -1, 68, 26, 1);
-    GrStringDraw(&g_sContext, str, -1, 8, 46, 1);
-    //GrStringDraw(&g_sContext, (HWREGBITW(&g_ui32Flags, 1) ? "1" : "0"), -1, 68, 36, 1);
-    IntMasterEnable();
+    pressCount = timerStartValue - TimerValueGet(TIMER5_BASE, TIMER_A);
+    TimerLoadSet(TIMER5_BASE, TIMER_A, timerStartValue);
+    displayFlag = 1;
 }
 
 void
@@ -70,13 +57,6 @@ int
 main(void)
 {
     tRectangle sRect;
-
-    //
-    // Enable lazy stacking for interrupt handlers.  This allows floating-point
-    // instructions to be used within interrupt handlers, but at the expense of
-    // extra stack usage.
-    //
-    FPULazyStackingEnable();
 
     //
     // Set the clocking to run directly from the crystal.
@@ -104,54 +84,56 @@ main(void)
 
     // Put the application name in the middle of the banner.
     GrContextFontSet(&g_sContext, g_psFontFixed6x8);
-    GrStringDrawCentered(&g_sContext, "timers", -1,
-                         GrContextDpyWidthGet(&g_sContext) / 2, 4, 0);
+    GrStringDrawCentered(&g_sContext, "Segment G", -1, GrContextDpyWidthGet(&g_sContext) / 2, 4, 0);
 
     // Initialize timer status display.
     GrContextFontSet(&g_sContext, g_psFontFixed6x8);
-    GrStringDraw(&g_sContext, "Timer 0:", -1, 16, 26, 0);
+    GrStringDraw(&g_sContext, "Timer 5:", -1, 16, 26, 0);
+
 
     //
     // Setup timers.
     //
 
     // Enable the peripherals used by this example.
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
-
-    // Enable processor interrupts.
-    IntMasterEnable();
-
-    // Configure the periodic timer.
-    TimerConfigure(TIMER0_BASE, TIMER_CFG_PERIODIC);
-    TimerLoadSet(TIMER0_BASE, TIMER_A, SysCtlClockGet() * 4);
-
-    // SW5 - PM4 - timer
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOM);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
     SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER5);
+
+    // Setup PM2 to be a timer.
+    GPIOPinTypeTimer(GPIO_PORTM_BASE, GPIO_PIN_2);
+    GPIOPinConfigure(GPIO_PM2_T5CCP0);
     // pull-up
     GPIOPadConfigSet(GPIO_PORTM_BASE, GPIO_PIN_2, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
 
-    // Setup PM2 to be a timer.
-    GPIOPinConfigure(GPIO_PM2_T5CCP0);
-    GPIOPinTypeTimer(GPIO_PORTM_BASE, GPIO_PIN_2);
-
-    TimerDisable(TIMER5_BASE, TIMER_A);
-
     // Configure timer 5 to capture button presses.
-    TimerConfigure(TIMER5_BASE, TIMER_CFG_SPLIT_PAIR | TIMER_CFG_A_CAP_COUNT);
+    TimerConfigure(TIMER5_BASE, TIMER_CFG_A_CAP_COUNT | TIMER_CFG_SPLIT_PAIR);
     TimerControlEvent(TIMER5_BASE, TIMER_A, TIMER_EVENT_POS_EDGE);
+    TimerLoadSet(TIMER5_BASE, TIMER_A, timerStartValue);
 
-    // Set initial timer load.
-    TimerLoadSet(TIMER5_BASE, TIMER_A, 5432);
-
-    // 4-sec timer.
+    // Configure the periodic timer.
+    TimerConfigure(TIMER0_BASE, TIMER_CFG_PERIODIC);
+    TimerLoadSet(TIMER0_BASE, TIMER_A, SysCtlClockGet() * 4 - 1);
     IntEnable(INT_TIMER0A);
     TimerIntEnable(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
+
+    // Enable processor interrupts.
+    IntMasterEnable();
 
     // Enable the timers.
     TimerEnable(TIMER0_BASE, TIMER_A);
     TimerEnable(TIMER5_BASE, TIMER_A);
 
     // Loop forever while the timers run.
-    while(1) {}
+    while(1)
+    {
+        // Display only when prompted
+        if (displayFlag == 1)
+        {
+            displayFlag = 0;
+            sprintf(str, "%d", pressCount);
+            GrStringDraw(&g_sContext, "   ", -1, 68, 26, 1);
+            GrStringDraw(&g_sContext, str, -1, 68, 26, 1);
+        }
+    }
 }
