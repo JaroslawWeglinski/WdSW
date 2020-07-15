@@ -6,4 +6,4 @@
 - [x] Segment D – PWM
 - [x] Segment E – wyświetlacz segmentowy
 - [x] Segment F – wyświetlacz wbudowany
-- [ ] Segment G – Obsługa przerwań
+- [x] Segment G – Obsługa przerwań
