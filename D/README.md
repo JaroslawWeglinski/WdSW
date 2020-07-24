@@ -15,7 +15,7 @@
 
 ![filmik d1](./d1.gif)
 
-D.2. Sterowanie PWM w czasie z wykorzystaniem licznika
+## D.2. Sterowanie PWM w czasie z wykorzystaniem licznika
 
 [Kod do zadania D.2.](./d2.c)
 
