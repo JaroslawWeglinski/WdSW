@@ -8,13 +8,11 @@
 
 ### Jaka jest teoretycznie maksymalna moc, z jaką może się świecić każdy z segmentów?
 
-`Sumarycznie 100% mocy PWM.`
+Sumarycznie 100% mocy PWM.
 
-### Czy oba segmenty świecą się z jednakową mocą? 
+### Czy oba segmenty świecą się z jednakową mocą?
 
-`Tak`
-
-
+Tak.
 
 ## E.2. Optymalizacja jasności
 
@@ -22,7 +20,7 @@
 
 ![zdjęcie e2](./e2.jpg)
 
-## E.3. Ruchomy obraz 
+## E.3. Ruchomy obraz
 
 [Kod do zadania E.3.](./e3.c)
 
