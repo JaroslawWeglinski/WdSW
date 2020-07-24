@@ -182,4 +182,6 @@ Tak.
 
 [Kod do zadania G.1.](./G/g1.c)
 
+*Filmik:*
+
 ![filmik g1](./G/g1.gif)
